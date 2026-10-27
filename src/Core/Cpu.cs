@@ -377,14 +377,10 @@ namespace NesEmulator.Core
                 case 0x85: Bus.CpuWrite(AddrZeroPage(), A); return 3;
                 case 0x95: Bus.CpuWrite(AddrZeroPageX(), A); return 4;
                 case 0x8D: Bus.CpuWrite(AddrAbsolute(), A); return 4;
-                case 0x9D: AddrAbsoluteX(out cross); Bus.CpuWrite((ushort)(Bus.CpuRead16((ushort)(PC - 2)) + X), A); return 5;
-                case 0x99: AddrAbsoluteY(out cross); Bus.CpuWrite((ushort)(Bus.CpuRead16((ushort)(PC - 2)) + Y), A); return 5;
+                case 0x9D: addr = AddrAbsoluteX(out cross); Bus.CpuWrite(addr, A); return 5;
+                case 0x99: addr = AddrAbsoluteY(out cross); Bus.CpuWrite(addr, A); return 5;
                 case 0x81: Bus.CpuWrite(AddrIndirectX(), A); return 6;
-                case 0x91:
-                    byte ptr = Bus.CpuRead((ushort)(PC - 1));
-                    addr = (ushort)(((Bus.CpuRead((ushort)((ptr + 1) & 0xFF)) << 8) | Bus.CpuRead(ptr)) + Y);
-                    Bus.CpuWrite(addr, A);
-                    return 6;
+                case 0x91: addr = AddrIndirectY(out cross); Bus.CpuWrite(addr, A); return 6;
 
                 // STX
                 case 0x86: Bus.CpuWrite(AddrZeroPage(), X); return 3;

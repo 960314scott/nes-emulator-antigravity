@@ -17,3 +17,6 @@ obj/
 
 # Test artifacts
 TestRunner.*
+
+# Commercial ROMs (Avoid copyright / DMCA on GitHub)
+Super Mario Bros. (World).nes
