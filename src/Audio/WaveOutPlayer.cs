@@ -6,12 +6,16 @@ namespace NesEmulator.Audio
 {
     public class WaveOutPlayer : IDisposable
     {
-        private const int SampleRate = 44100;
+        public const int SampleRate = 44100;
         private const int Channels = 1;
         private const int BitsPerSample = 16;
-        private const int BufferCount = 4;
-        private const int BufferSamples = 1024;
+        private const int BufferCount = 8;
+        public const int BufferSamples = 735; // ~16.67ms (1 NES frame)
         private const int BufferSizeBytes = BufferSamples * 2;
+
+        private const uint WHDR_DONE = 0x00000001;
+        private const uint WHDR_PREPARED = 0x00000002;
+        private const uint WHDR_INQUEUE = 0x00000010;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct WaveFormatEx
@@ -86,6 +90,7 @@ namespace NesEmulator.Audio
                     return;
                 }
 
+                int hdrSize = Marshal.SizeOf(typeof(WaveHdr));
                 for (int i = 0; i < BufferCount; i++)
                 {
                     _bufferPtrs[i] = Marshal.AllocHGlobal(BufferSizeBytes);
@@ -93,9 +98,9 @@ namespace NesEmulator.Audio
                     {
                         lpData = _bufferPtrs[i],
                         dwBufferLength = (uint)BufferSizeBytes,
-                        dwFlags = 0
+                        dwFlags = WHDR_DONE
                     };
-                    waveOutPrepareHeader(_hWaveOut, ref _headers[i], Marshal.SizeOf(typeof(WaveHdr)));
+                    waveOutPrepareHeader(_hWaveOut, ref _headers[i], hdrSize);
                 }
 
                 _isInitialized = true;
@@ -106,7 +111,7 @@ namespace NesEmulator.Audio
             }
         }
 
-        public void PlaySample(short sample)
+        public virtual void PlaySample(short sample)
         {
             if (!_isInitialized)
                 return;
@@ -125,7 +130,17 @@ namespace NesEmulator.Audio
                 return;
 
             int id = _currentBufferId;
+
+            // Wait if the buffer is currently being played by the sound hardware
+            int wait = 0;
+            while ((_headers[id].dwFlags & WHDR_DONE) == 0 && wait < 40)
+            {
+                Thread.Sleep(1);
+                wait++;
+            }
+
             Marshal.Copy(_currentBuffer, 0, _headers[id].lpData, BufferSamples);
+            _headers[id].dwFlags &= ~WHDR_DONE;
             waveOutWrite(_hWaveOut, ref _headers[id], Marshal.SizeOf(typeof(WaveHdr)));
             _currentBufferId = (_currentBufferId + 1) % BufferCount;
         }

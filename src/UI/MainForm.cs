@@ -289,7 +289,15 @@ namespace NesEmulator.UI
                         long elapsed = Stopwatch.GetTimestamp() - lastTime;
                         while (elapsed < targetFrameTime)
                         {
-                            Thread.SpinWait(10);
+                            long remainingTicks = (long)targetFrameTime - elapsed;
+                            if (remainingTicks > (frequency / 500)) // More than 2ms
+                            {
+                                Thread.Sleep(1);
+                            }
+                            else
+                            {
+                                Thread.SpinWait(10);
+                            }
                             elapsed = Stopwatch.GetTimestamp() - lastTime;
                         }
                     }
