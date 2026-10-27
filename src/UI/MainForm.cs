@@ -51,6 +51,7 @@ namespace NesEmulator.UI
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             AllowDrop = true;
+            KeyPreview = true;
 
             DragEnter += OnFormDragEnter;
             DragDrop += OnFormDragDrop;
@@ -72,8 +73,8 @@ namespace NesEmulator.UI
 
             // Emulation Menu
             ToolStripMenuItem emuMenu = new ToolStripMenuItem("&Emulation");
-            ToolStripMenuItem pauseItem = new ToolStripMenuItem("&Pause / Resume", null, (s, e) => TogglePause()) { ShortcutKeys = Keys.P };
-            ToolStripMenuItem turboItem = new ToolStripMenuItem("&Turbo Mode", null, (s, e) => ToggleTurbo()) { ShortcutKeys = Keys.Tab };
+            ToolStripMenuItem pauseItem = new ToolStripMenuItem("&Pause / Resume (P)", null, (s, e) => TogglePause());
+            ToolStripMenuItem turboItem = new ToolStripMenuItem("&Turbo Mode (Tab)", null, (s, e) => ToggleTurbo());
             emuMenu.DropDownItems.AddRange(new ToolStripItem[] { pauseItem, turboItem });
 
             // Video Menu
@@ -328,11 +329,26 @@ namespace NesEmulator.UI
 
         private void OnFormKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.P)
+            {
+                TogglePause();
+                return;
+            }
+            if (e.KeyCode == Keys.Tab)
+            {
+                _isTurbo = true;
+                return;
+            }
             HandleKey(e.KeyCode, true);
         }
 
         private void OnFormKeyUp(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.Tab)
+            {
+                _isTurbo = false;
+                return;
+            }
             HandleKey(e.KeyCode, false);
         }
 
