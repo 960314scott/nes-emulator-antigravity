@@ -1,0 +1,19 @@
+# Build outputs and temporary files
+*.exe
+*.dll
+*.pdb
+*.obj
+
+# Save states
+*.sav
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+bin/
+obj/
+*.user
+*.suo
+
+# Test artifacts
+TestRunner.*
